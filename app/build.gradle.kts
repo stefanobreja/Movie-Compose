@@ -1,3 +1,11 @@
+import java.io.FileInputStream
+import java.util.*
+
+val keysPropertiesFile = rootProject.file("keys.properties")
+val keysProperties = Properties()
+val fileInputStream = FileInputStream(keysPropertiesFile)
+keysProperties.load(fileInputStream)
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -18,11 +26,20 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        buildFeatures {
+            buildConfig = true
+        }
+        buildConfigField("String", "apiKey", keysProperties.getProperty("apiKey"))
+        buildConfigField("String", "authorizationToken", keysProperties.getProperty("authorizationToken"))
     }
 
     buildTypes {
+        debug {
+            isDebuggable = true
+        }
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isDebuggable = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
@@ -63,4 +80,25 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+
+    //navigation
+    implementation("androidx.navigation:navigation-compose:2.7.5")
+
+    //Image Async loading
+    implementation("io.coil-kt:coil-compose:2.5.0")
+
+    //Network
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
+    //Dependency-injection
+    implementation("io.insert-koin:koin-androidx-compose:3.5.0")
+
+    // GSON
+    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    //Logging
+    implementation("com.jakewharton.timber:timber:5.0.1")
+
 }
