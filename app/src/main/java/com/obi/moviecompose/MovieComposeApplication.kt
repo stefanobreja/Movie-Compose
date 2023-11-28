@@ -9,6 +9,7 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.compose.KoinContext
 import org.koin.core.context.startKoin
+import timber.log.Timber
 
 class MovieComposeApplication : Application() {
     override fun onCreate() {
@@ -17,6 +18,7 @@ class MovieComposeApplication : Application() {
             androidLogger()
             androidContext(this@MovieComposeApplication)
             modules(appModule, dataModule, domainModule, viewModelModule)
+            Timber.plant(Timber.DebugTree())
         }
     }
 }
