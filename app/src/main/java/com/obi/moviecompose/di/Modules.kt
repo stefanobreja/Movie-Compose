@@ -4,7 +4,9 @@ import com.obi.moviecompose.BuildConfig
 import com.obi.moviecompose.data.Consts.BASE_URL
 import com.obi.moviecompose.data.MovieApi
 import com.obi.moviecompose.data.MoviesRepository
+import com.obi.moviecompose.domain.GetAiringTodayTvShowsUseCase
 import com.obi.moviecompose.domain.GetTopRatedMoviesUseCase
+import com.obi.moviecompose.domain.GetTrendingMoviesUseCase
 import com.obi.moviecompose.presentation.home.HomeScreenViewModel
 import kotlinx.coroutines.Dispatchers
 import okhttp3.Interceptor
@@ -21,10 +23,9 @@ val appModule = module {
         okHttpClient.addInterceptor(Interceptor { chain ->
             val request: Request = chain.request().newBuilder()
                 .addHeader("accept", "application/json")
-                .addHeader("api_key", BuildConfig.apiKey)
                 .addHeader(
                     "Authorization",
-                    BuildConfig.authorizationToken
+                    "Bearer ${BuildConfig.authorizationToken}"
                 )
                 .build()
             chain.proceed(request)
@@ -44,9 +45,11 @@ val dataModule = module {
 }
 val domainModule = module {
     factory { GetTopRatedMoviesUseCase(get()) }
+    factory { GetTrendingMoviesUseCase(get()) }
+    factory { GetAiringTodayTvShowsUseCase(get()) }
 }
 
 val viewModelModule = module {
-    factory { HomeScreenViewModel(get()) }
+    factory { HomeScreenViewModel(get(), get(), get()) }
 }
 

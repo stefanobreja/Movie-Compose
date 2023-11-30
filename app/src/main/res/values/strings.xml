@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Watched</string>
+    <string name="popular_label">Popular</string>
+    <string name="trending_label">Trending</string>
 </resources>

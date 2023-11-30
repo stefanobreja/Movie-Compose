@@ -18,7 +18,9 @@ class MovieComposeApplication : Application() {
             androidLogger()
             androidContext(this@MovieComposeApplication)
             modules(appModule, dataModule, domainModule, viewModelModule)
-            Timber.plant(Timber.DebugTree())
+            if (BuildConfig.DEBUG) {
+                Timber.plant(Timber.DebugTree())
+            }
         }
     }
 }

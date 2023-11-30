@@ -1,37 +1,70 @@
 package com.obi.moviecompose.presentation.home
 
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
+import com.obi.moviecompose.domain.GetAiringTodayTvShowsUseCase
 import com.obi.moviecompose.domain.GetTopRatedMoviesUseCase
+import com.obi.moviecompose.domain.GetTrendingMoviesUseCase
 import com.obi.moviecompose.domain.Movie
 import com.obi.moviecompose.presentation.base.BaseViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class HomeScreenViewModel(getTopRatedMoviesUseCase: GetTopRatedMoviesUseCase) : BaseViewModel() {
+class HomeScreenViewModel(
+    private val getTrendingMoviesUseCase: GetTrendingMoviesUseCase,
+    private val getTopRatedMoviesUseCase: GetTopRatedMoviesUseCase,
+    private val getAiringTodayTvShowsUseCase: GetAiringTodayTvShowsUseCase
+) : BaseViewModel() {
 
-    private val _events: MutableState<Event?> = mutableStateOf(null)
-    private val events: State<Event?> = _events
+    private val _events: MutableStateFlow<Event?> = MutableStateFlow(null)
+    val events: StateFlow<Event?> = _events
 
-    private val currentPage = 0
+    private var trendingCurrentPage = 1
+    private val _trendingMovies: MutableStateFlow<MutableList<Movie>> = MutableStateFlow(mutableListOf())
+    val trendingMovies: StateFlow<List<Movie>> = _trendingMovies
 
-    private val _movies: MutableState<List<Movie>> = mutableStateOf(listOf())
-    val movies: State<List<Movie>> = _movies
+    private var topRatedCurrentPage = 1
+    private val _topRatedMovies: MutableStateFlow<List<Movie>> = MutableStateFlow(mutableListOf())
+    val topRatedMovies: StateFlow<List<Movie>> = _topRatedMovies
 
     init {
         viewModelScope.launch {
-            getTopRatedMoviesUseCase()
+            getTrendingMovies()
+            getTopRatedMovies()
+        }
+    }
+
+    fun getTrendingMovies() {
+        viewModelScope.launch {
+            getTrendingMoviesUseCase(GetTrendingMoviesUseCase.Params(trendingCurrentPage))
                 .onSuccess { response ->
-                    _movies.value = response.movies
+                    _trendingMovies.value += response.movies
+                    _trendingMovies.emit(_trendingMovies.value)
+                    trendingCurrentPage += 1
                 }
                 .onFailure { error ->
                     error.message?.let {
-                        _events.value = Event.ShowError(it)
+                        _events.emit(Event.ShowError(it))
                     }
                 }
         }
     }
+
+    fun getTopRatedMovies() {
+        viewModelScope.launch {
+            getTopRatedMoviesUseCase(GetTopRatedMoviesUseCase.Params(topRatedCurrentPage))
+                .onSuccess { response ->
+                    _topRatedMovies.value += response.movies
+                    topRatedCurrentPage += 1
+                }
+                .onFailure { error ->
+                    error.message?.let {
+                        _events.emit(Event.ShowError(it))
+                    }
+                }
+        }
+    }
+
 
     sealed class Event {
         data class ShowError(val errorMessage: String) : Event()
