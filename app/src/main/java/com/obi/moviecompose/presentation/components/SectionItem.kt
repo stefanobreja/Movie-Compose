@@ -23,11 +23,15 @@ import com.obi.moviecompose.R
 fun SectionItem(
     @DrawableRes icon: Int,
     @StringRes textRes: Int,
-    modifier: Modifier
+    modifier: Modifier = Modifier
 ) {
     Row(modifier, verticalAlignment = Alignment.CenterVertically) {
-        Icon(painter = painterResource(id = icon), contentDescription = null, tint = Color.LightGray)
-        Text(text = stringResource(id = textRes), fontSize = 24.sp, modifier = Modifier.padding(8.dp), color = Color.LightGray)
+        Icon(painter = painterResource(id = icon), contentDescription = null)
+        Text(
+            text = stringResource(id = textRes),
+            fontSize = 24.sp,
+            modifier = Modifier.padding(8.dp)
+        )
     }
 }
 

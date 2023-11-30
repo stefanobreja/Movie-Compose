@@ -3,13 +3,13 @@ package com.obi.moviecompose.domain
 import com.obi.moviecompose.data.MoviesRepository
 import com.obi.moviecompose.data.models.Movie
 
-class GetTopRatedMoviesUseCase(
+class GetAiringTodayTvShowsUseCase(
     private val repository: MoviesRepository
-) : UseCase<GetTopRatedMoviesUseCase.Response, GetTopRatedMoviesUseCase.Params>() {
+) : UseCase<GetAiringTodayTvShowsUseCase.Response, GetAiringTodayTvShowsUseCase.Params>() {
 
     override suspend fun get(params: Params?): Response {
         requireNotNull(params)
-        val result = repository.getTopRatedMovies(params.pageNumber)
+        val result = repository.getAiringTodayTvShows(params.pageNumber)
         return Response(result.movies.map(Movie::toDomainMovie), result.totalPages)
     }
 
