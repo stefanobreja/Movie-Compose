@@ -1,5 +1,6 @@
 package com.obi.moviecompose.data
 
+import com.obi.moviecompose.data.models.Credits
 import com.obi.moviecompose.data.models.Movie
 import com.obi.moviecompose.data.models.MovieResult
 import com.obi.moviecompose.data.utils.TimeWindow
@@ -26,4 +27,8 @@ interface MovieApi {
     suspend fun getAiringTodayTvShows(
         @Query("page") page: Int
     ): MovieResult
+
+    @GET("movie/{movie_id}/credits")
+    suspend fun getMovieCredits(@Path("movie_id") movieId: Int): Credits
+
 }

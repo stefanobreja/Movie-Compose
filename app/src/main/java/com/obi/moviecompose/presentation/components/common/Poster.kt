@@ -19,6 +19,6 @@ fun Poster(posterPath: String?, title: String, modifier: Modifier = Modifier) {
         contentDescription = "$title movie poster",
         placeholder = painterResource(id = R.drawable.ic_movie_100_gray),
         contentScale = ContentScale.FillWidth,
-        modifier = modifier.aspectRatio(3f / 4f, true)
+        modifier = modifier.aspectRatio(3f / 4f)
     )
 }

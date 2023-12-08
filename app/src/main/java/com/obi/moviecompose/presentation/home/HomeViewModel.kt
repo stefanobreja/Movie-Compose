@@ -4,20 +4,17 @@ import androidx.lifecycle.viewModelScope
 import com.obi.moviecompose.domain.GetAiringTodayTvShowsUseCase
 import com.obi.moviecompose.domain.GetTopRatedMoviesUseCase
 import com.obi.moviecompose.domain.GetTrendingMoviesUseCase
-import com.obi.moviecompose.domain.Movie
+import com.obi.moviecompose.domain.models.Movie
 import com.obi.moviecompose.presentation.base.BaseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class HomeScreenViewModel(
+class HomeViewModel(
     private val getTrendingMoviesUseCase: GetTrendingMoviesUseCase,
     private val getTopRatedMoviesUseCase: GetTopRatedMoviesUseCase,
     private val getAiringTodayTvShowsUseCase: GetAiringTodayTvShowsUseCase
 ) : BaseViewModel() {
-
-    private val _events: MutableStateFlow<Event?> = MutableStateFlow(null)
-    val events: StateFlow<Event?> = _events
 
     private var trendingCurrentPage = 1
     private val _trendingMovies: MutableStateFlow<MutableList<Movie>> = MutableStateFlow(mutableListOf())
@@ -44,7 +41,7 @@ class HomeScreenViewModel(
                 }
                 .onFailure { error ->
                     error.message?.let {
-                        _events.emit(Event.ShowError(it))
+                        emitEvent(Event.ShowError(it))
                     }
                 }
         }
@@ -59,14 +56,10 @@ class HomeScreenViewModel(
                 }
                 .onFailure { error ->
                     error.message?.let {
-                        _events.emit(Event.ShowError(it))
+                        emitEvent(Event.ShowError(it))
                     }
                 }
         }
     }
 
-
-    sealed class Event {
-        data class ShowError(val errorMessage: String) : Event()
-    }
 }

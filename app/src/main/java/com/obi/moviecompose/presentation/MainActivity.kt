@@ -1,6 +1,5 @@
 package com.obi.moviecompose.presentation
 
-import android.content.res.Resources.Theme
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -9,58 +8,78 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.obi.moviecompose.MovieComposeApplication
+import androidx.navigation.navArgument
 import com.obi.moviecompose.R
 import com.obi.moviecompose.presentation.home.HomeScreen
+import com.obi.moviecompose.presentation.moviedetails.MovieDetailsScreen
+import com.obi.moviecompose.presentation.util.BottomBarScreen
+import com.obi.moviecompose.presentation.util.NavigationDestination
 import com.obi.moviecompose.ui.theme.MovieComposeAppTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            MovieComposeAppTheme {
-                val navController = rememberNavController()
-                Scaffold(
-                    topBar = {
-                        TopAppBar(
-                            title = {
-                                Text(
-                                    stringResource(id = R.string.app_name),
-                                    modifier = Modifier.padding(start = 24.dp, top = 8.dp, bottom = 8.dp)
-                                )
-                            }
-                        )
-                    },
-                    bottomBar = {
-                        BottomNavigation(navController)
-                    }) { innerPadding ->
-                    NavigationGraph(navController, innerPadding)
-                }
 
+        setContent {
+            val navController = rememberNavController()
+            MovieComposeAppTheme {
+                Scaffold(
+                    topBar = { TopBar(navController = navController) },
+                    bottomBar = { BottomNavigation(navController) }) { innerPadding ->
+                    NavigationGraph(
+                        navController,
+                        innerPadding
+                    )
+                }
             }
         }
     }
 
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun TopBar(modifier: Modifier = Modifier, navController: NavHostController = rememberNavController()) {
+        val currentRoute = navController.currentDestination?.route
+        val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+
+        TopAppBar(
+            modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+
+            title = {
+                Text(
+                    when (currentRoute) {
+                        BottomBarScreen.Home.route -> stringResource(id = R.string.app_name)
+                        else -> stringResource(id = R.string.app_name)
+                    },
+                    modifier = Modifier.padding(
+                        start = 24.dp, top = 8.dp, bottom = 8.dp
+                    )
+                )
+            }
+        )
+    }
+
     @Composable
     private fun BottomNavigation(
-        navController: NavHostController
+        navController: NavHostController = rememberNavController()
     ) {
         val screens = listOf(BottomBarScreen.Home, BottomBarScreen.Favorites, BottomBarScreen.Search)
 
@@ -88,8 +107,8 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    private fun NavigationGraph(
-        navController: NavHostController,
+    fun NavigationGraph(
+        navController: NavHostController = rememberNavController(),
         innerPadding: PaddingValues
     ) {
         NavHost(
@@ -103,6 +122,12 @@ class MainActivity : ComponentActivity() {
             composable(BottomBarScreen.Favorites.route) {
             }
             composable(BottomBarScreen.Search.route) {
+            }
+            composable(
+                "${NavigationDestination.MovieDetails.route}/{movieId}",
+                arguments = listOf(navArgument("movieId") { type = NavType.IntType })
+            ) { backStackEntry ->
+                MovieDetailsScreen(movieId = backStackEntry.arguments?.getInt("movieId"), navController = navController)
             }
         }
     }

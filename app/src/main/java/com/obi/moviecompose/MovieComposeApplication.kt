@@ -7,7 +7,6 @@ import com.obi.moviecompose.di.domainModule
 import com.obi.moviecompose.di.viewModelModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
-import org.koin.compose.KoinContext
 import org.koin.core.context.startKoin
 import timber.log.Timber
 
@@ -18,9 +17,9 @@ class MovieComposeApplication : Application() {
             androidLogger()
             androidContext(this@MovieComposeApplication)
             modules(appModule, dataModule, domainModule, viewModelModule)
-            if (BuildConfig.DEBUG) {
-                Timber.plant(Timber.DebugTree())
-            }
+        }
+        if (BuildConfig.DEBUG) {
+            Timber.plant(Timber.DebugTree())
         }
     }
 }

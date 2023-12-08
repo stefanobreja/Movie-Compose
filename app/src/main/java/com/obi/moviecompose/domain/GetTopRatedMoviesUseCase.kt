@@ -2,6 +2,8 @@ package com.obi.moviecompose.domain
 
 import com.obi.moviecompose.data.MoviesRepository
 import com.obi.moviecompose.data.models.Movie
+import com.obi.moviecompose.domain.models.DomainMovie
+import com.obi.moviecompose.domain.models.toDomainMovie
 
 class GetTopRatedMoviesUseCase(
     private val repository: MoviesRepository

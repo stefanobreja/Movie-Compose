@@ -6,21 +6,19 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.obi.moviecompose.domain.Movie
+import androidx.navigation.compose.rememberNavController
+import com.obi.moviecompose.domain.models.Movie
+import com.obi.moviecompose.presentation.util.NavigationDestination
 
 @Composable
 fun MoviePortraitList(
     modifier: Modifier = Modifier,
     movies: List<Movie>,
-    navController: NavHostController?,
+    navController: NavHostController = rememberNavController(),
     loadMore: () -> Unit,
 ) {
     val listState: LazyListState = rememberLazyListState()
@@ -30,7 +28,10 @@ fun MoviePortraitList(
             MoviePortraitItem(
                 movie.posterPath,
                 movie.title,
-                onItemClicked = { navController?.navigate("movieDetails/${movie.id}") })
+
+                onItemClicked = {
+                    navController.navigate("${NavigationDestination.MovieDetails.route}/${movie.id}")
+                })
         }
     }
 
@@ -49,11 +50,11 @@ fun MoviePortraitListPreview() {
                 1,
                 "First Title",
                 "First Name",
-                ""
+                "", "", ""
             ),
-            Movie(2, "Second Title", "Second name", ""),
-            Movie(3, "Second Title", "Second name", ""),
-            Movie(4, "Second Title", "Second name", ""),
-        ), loadMore = {}, navController = null
+            Movie(2, "Second Title", "Second name", "", "", ""),
+            Movie(3, "Second Title", "Second name", "", "", ""),
+            Movie(4, "Second Title", "Second name", "", "", ""),
+        ), loadMore = {}, navController = rememberNavController()
     )
 }
