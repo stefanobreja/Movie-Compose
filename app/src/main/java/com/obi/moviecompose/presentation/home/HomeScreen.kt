@@ -1,71 +1,121 @@
 package com.obi.moviecompose.presentation.home
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.obi.moviecompose.R
-import com.obi.moviecompose.presentation.components.MovieLargeItem
-import com.obi.moviecompose.presentation.components.MoviePortraitList
-import com.obi.moviecompose.presentation.components.SectionItem
+import com.obi.moviecompose.presentation.FilterAction
+import com.obi.moviecompose.presentation.Screen
+import com.obi.moviecompose.presentation.components.MoviesGrid
+import com.obi.moviecompose.presentation.home.TabSection.Companion.getTabByPosition
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun HomeScreen(homeViewModel: HomeScreenViewModel = koinViewModel(), navController: NavHostController) {
-    val trendingMovies by homeViewModel.trendingMovies.collectAsState()
-    val topRatedMovies by homeViewModel.topRatedMovies.collectAsState()
+fun HomeScreen(
+    viewModel: HomeViewModel = koinViewModel(),
+    navController: NavHostController,
+    filterAction: FilterAction
+) {
+    val movies by viewModel.shownMovies.collectAsState()
+    val loadingState by viewModel.loadingState.collectAsState()
+    val selectedTab by viewModel.selectedTab.collectAsState()
+
+    val filteredMovies by remember {
+        mutableStateOf(
+            when (filterAction) {
+                FilterAction.NONE -> movies
+                FilterAction.BY_RATING_ASCENDING -> movies.sortedBy { it.voteAverage }
+                FilterAction.BY_RATING_DESCENDING -> movies.sortedByDescending { it.voteAverage }
+                FilterAction.BY_DATE_ASCENDING -> movies.sortedBy { it.releaseDate }
+                FilterAction.BY_DATE_DESCENDING -> movies.sortedByDescending { it.releaseDate }
+            }
+        )
+    }
+
     Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier.fillMaxSize()) {
         Column(
-            Modifier
-                .padding(horizontal = 24.dp)
-                .verticalScroll(rememberScrollState())
+            Modifier.verticalScroll(rememberScrollState())
         ) {
-            trendingMovies.let {
-                if (it.isNotEmpty()) {
-                    SectionItem(icon = R.drawable.ic_trending_24, textRes = R.string.trending_label)
-                    MoviePortraitList(
-                        movies = it, navController = navController, modifier = Modifier.padding(top = 12.dp)
-                    ) {
-                        homeViewModel.getTrendingMovies()
-                    }
-                }
-            }
-            topRatedMovies.let {
-                if (it.isNotEmpty()) {
-                    SectionItem(
-                        icon = R.drawable.ic_favorite_24,
-                        textRes = R.string.popular_label,
-                        modifier = Modifier.padding(top = 12.dp)
-                    )
-                    MoviePortraitList(
-                        movies = it,
-                        navController = navController,
-                        modifier = Modifier.padding(top = 12.dp)
-                    ) {
-                        homeViewModel.getTopRatedMovies()
-                    }
-                    MovieLargeItem(
-                        posterPath = it.first().posterPath,
-                        title = it.first().title,
-                        overview = it.first().overview,
-                        modifier = Modifier.padding(top = 24.dp, bottom = 24.dp)
+            val tabs = listOf(
+                TabSection.NowPlaying,
+                TabSection.Popular,
+                TabSection.TopRated
+            )
+
+            TabRow(
+                modifier = Modifier.fillMaxWidth(),
+                selectedTabIndex = selectedTab.position
+            ) {
+                tabs.forEachIndexed { index, tab ->
+                    Tab(
+                        selected = index == selectedTab.position,
+                        onClick = {
+                            viewModel.onTabSelected(getTabByPosition(index))
+                        },
+                        text = { Text(text = stringResource(id = tab.titleRes)) }
                     )
                 }
             }
 
+            if (loadingState.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .padding(12.dp)
+                        .size(48.dp)
+                        .fillMaxHeight()
+                        .align(Alignment.CenterHorizontally)
+                )
+            } else {
+                MoviesGrid(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    movies = filteredMovies,
+                    loadMore = { viewModel.loadMore() },
+                    isLoading = loadingState.isLoadingMore,
+                    onMovieClicked = {
+                        navController.navigate("${Screen.Details.route}?movieId=$it")
+                    }
+                )
+            }
+        }
+
+    }
+}
+
+sealed class TabSection(val titleRes: Int, val position: Int) {
+    data object NowPlaying : TabSection(R.string.now_playing_label, 0)
+    data object Popular : TabSection(R.string.popular_label, 1)
+    data object TopRated : TabSection(R.string.trending_label, 2)
+
+    companion object {
+        fun getTabByPosition(position: Int) = when (position) {
+            0 -> NowPlaying
+            1 -> Popular
+            2 -> TopRated
+            else -> NowPlaying
         }
     }
 }

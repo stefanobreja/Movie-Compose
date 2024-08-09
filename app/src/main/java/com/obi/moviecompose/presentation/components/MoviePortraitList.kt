@@ -6,10 +6,6 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -49,11 +45,12 @@ fun MoviePortraitListPreview() {
                 1,
                 "First Title",
                 "First Name",
-                ""
+                "",
+                "", emptyList(), "", 1.2, 121, false
             ),
-            Movie(2, "Second Title", "Second name", ""),
-            Movie(3, "Second Title", "Second name", ""),
-            Movie(4, "Second Title", "Second name", ""),
+            Movie(2, "Second Title", "Second name", "", "", emptyList(), "", 1.2, 121, false),
+            Movie(3, "Second Title", "Second name", "", "", emptyList(), "", 1.2, 121, false),
+            Movie(4, "Second Title", "Second name", "", "", emptyList(), "", 1.2, 121, false),
         ), loadMore = {}, navController = null
     )
 }

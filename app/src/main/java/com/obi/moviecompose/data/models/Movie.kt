@@ -1,43 +1,31 @@
 package com.obi.moviecompose.data.models
 
+import androidx.room.Entity
+import androidx.room.Ignore
+import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
 
+@Entity("movies")
 data class Movie(
-    val adult: Boolean,
-    @SerializedName("backdrop_path")
-    val backdropPath: String,
-    @SerializedName("belongs_to_collection")
-    val belongsToCollection: Any,
-    val budget: Int,
-    val genres: List<Genre>,
-    val homepage: String,
-    val id: Int,
-    @SerializedName("imdb_id")
-    val imdbDd: String,
-    @SerializedName("original_language")
-    val originalLanguage: String,
-    @SerializedName("original_title")
-    val originalTitle: String,
-    val overview: String,
-    val popularity: Double,
-    @SerializedName("poster_path")
-    val posterPath: String,
-    @SerializedName("production_companies")
-    val productionCompanies: List<ProductionCompany>,
-    @SerializedName("production_countries")
-    val productionCountries: List<ProductionCountry>,
-    @SerializedName("release_date")
-    val releaseDate: String,
-    val revenue: Int,
-    val runtime: Int,
-    @SerializedName("spoken_languages")
-    val spokenLanguages: List<SpokenLanguage>,
-    val status: String,
-    val tagline: String,
-    val title: String,
-    val video: Boolean,
-    @SerializedName("vote_average")
-    val voteAverage: Double,
-    @SerializedName("vote_count")
-    val voteCount: Int
+    @PrimaryKey(autoGenerate = false)
+    var id: Int? = 0,
+    var adult: Boolean? = false,
+    var backdrop_path: String? = "",
+    var budget: Int? = 0,
+    @Ignore var genres: List<Genre>? = emptyList(),
+    var homepage: String? = "",
+    var original_language: String? = "",
+    var overview: String? = "",
+    var popularity: Double? = 0.0,
+    var poster_path: String? = "",
+    var release_date: String? = "",
+    var revenue: Int? = 0,
+    var runtime: Int? = 0,
+    var status: String? = "",
+    var tagline: String? = "",
+    var title: String? = "",
+    var video: Boolean? = false,
+    var vote_average: Double? = 0.0,
+    var vote_count: Int? = 0,
+    var isFavorite: Boolean = false
 )
