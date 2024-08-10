@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
@@ -25,9 +26,9 @@ fun MoviesGrid(
     movies: List<Movie>,
     loadMore: () -> Unit,
     isLoading: Boolean,
-    onMovieClicked: (Int) -> Unit
+    onMovieClicked: (Int) -> Unit,
+    listState: LazyGridState = rememberLazyGridState()
 ) {
-    val listState = rememberLazyGridState()
     val shouldShowMore by remember { derivedStateOf { listState.reachedBottom() } }
     LaunchedEffect(shouldShowMore) {
         if (shouldShowMore) loadMore()

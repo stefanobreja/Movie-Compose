@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -29,8 +30,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.NavOptions
 import com.obi.moviecompose.R
@@ -38,6 +43,8 @@ import com.obi.moviecompose.presentation.AppBarState
 import com.obi.moviecompose.presentation.Screen
 import com.obi.moviecompose.presentation.components.MoviesGrid
 import com.obi.moviecompose.presentation.home.TabSection.Companion.getTabByPosition
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -46,9 +53,26 @@ fun HomeScreen(
     navController: NavHostController,
     setAppBarState: (AppBarState) -> Unit
 ) {
+    val lifecyle:Lifecycle = LocalLifecycleOwner.current.lifecycle
     val movies by viewModel.shownMovies.collectAsState()
     val loadingState by viewModel.loadingState.collectAsState()
     val selectedTab by viewModel.selectedTab.collectAsState()
+    val gridState = rememberLazyGridState()
+
+    LaunchedEffect(key1 = Unit) {
+
+        lifecyle.repeatOnLifecycle(Lifecycle.State.STARTED){
+            launch {
+                viewModel.events.collectLatest {
+                    when (it) {
+                        HomeViewModel.Event.AnimateTop -> gridState.animateScrollToItem(0)
+                        is HomeViewModel.Event.ShowError -> {}
+                        null -> {}
+                    }
+                }
+            }
+        }
+    }
 
     var showMenu by remember { mutableStateOf(false) }
 
@@ -69,26 +93,26 @@ fun HomeScreen(
                             text = { Text(text = "Filter by rating ascending") },
                             onClick = {
                                 showMenu = false
-                                viewModel.onFilterByRatingAscending()
+                                viewModel.onSortByRatingAscending()
                             })
                         DropdownMenuItem(
                             text = { Text(text = "Filter by rating descending") },
                             onClick = {
                                 showMenu = false
-                                viewModel.onFilterByRatingDescending()
+                                viewModel.onSortByRatingDescending()
 
                             })
                         DropdownMenuItem(
                             text = { Text(text = "Filter by date ascending") },
                             onClick = {
                                 showMenu = false
-                                viewModel.onFilterByDateAscending()
+                                viewModel.onSortByDateAscending()
                             })
                         DropdownMenuItem(
                             text = { Text(text = "Filter by date descending") },
                             onClick = {
                                 showMenu = false
-                                viewModel.onFilterByDateDescending()
+                                viewModel.onSortByDateDescending()
                             })
                     }
                 })
@@ -137,10 +161,13 @@ fun HomeScreen(
                     movies = movies,
                     loadMore = { viewModel.loadMore() },
                     isLoading = loadingState.isLoadingMore,
+                    listState = gridState,
                     onMovieClicked = {
                         navController.navigate(
                             route = "${Screen.Details.route}?movieId=$it",
-                            navOptions = NavOptions.Builder().setLaunchSingleTop(true).build()
+                            navOptions = NavOptions.Builder()
+                                .setLaunchSingleTop(true)
+                                .build()
                         )
                     }
                 )

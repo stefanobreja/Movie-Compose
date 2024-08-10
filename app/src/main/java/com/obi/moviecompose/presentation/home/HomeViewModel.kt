@@ -2,13 +2,16 @@ package com.obi.moviecompose.presentation.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.obi.moviecompose.domain.Movie
 import com.obi.moviecompose.domain.usecases.GetAiringTodayTvShowsUseCase
 import com.obi.moviecompose.domain.usecases.GetTopRatedMoviesUseCase
 import com.obi.moviecompose.domain.usecases.GetTrendingMoviesUseCase
-import com.obi.moviecompose.domain.Movie
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import logcat.logcat
@@ -18,8 +21,8 @@ class HomeViewModel(
     private val getTopRatedMoviesUseCase: GetTopRatedMoviesUseCase,
     private val getAiringTodayTvShowsUseCase: GetAiringTodayTvShowsUseCase
 ) : ViewModel() {
-    private val _events: MutableStateFlow<Event?> = MutableStateFlow(null)
-    val events: StateFlow<Event?> = _events
+    private val _events = Channel<Event?>(Channel.BUFFERED)
+    val events: Flow<Event?> = _events.receiveAsFlow()
 
     private var airingTodayCurrentPage = 1
     private var airingTodayTvShows: MutableList<Movie> = mutableListOf()
@@ -40,6 +43,8 @@ class HomeViewModel(
 
     private val _selectedTab: MutableStateFlow<TabSection> = MutableStateFlow(TabSection.Popular)
     var selectedTab: StateFlow<TabSection> = _selectedTab
+
+    private var sortOption: SortOption? = null
 
     init {
         getTrendingMovies(false)
@@ -63,13 +68,17 @@ class HomeViewModel(
                     }
                     airingTodayTvShows += response.movies
                     _shownMovies.value = airingTodayTvShows
+                    sortWithOptionIfNeeded()
+                    if (!isLoadMore) {
+                        _events.send(Event.AnimateTop)
+                    }
                 }
                 .onFailure { error ->
                     logcat {
                         "getAiringTodayTvShows error: $error"
                     }
                     error.message?.let {
-                        _events.emit(Event.ShowError(it))
+                        _events.send(Event.ShowError(it))
                     }
                 }
         }
@@ -89,10 +98,14 @@ class HomeViewModel(
 
                     trendingMovies += response.movies
                     _shownMovies.value = trendingMovies
+                    sortWithOptionIfNeeded()
+                    if (!isLoadMore) {
+                        _events.send(Event.AnimateTop)
+                    }
                 }
                 .onFailure { error ->
                     error.message?.let {
-                        _events.emit(Event.ShowError(it))
+                        _events.send(Event.ShowError(it))
                     }
                 }
         }
@@ -112,10 +125,14 @@ class HomeViewModel(
 
                     topRatedMovies += response.movies
                     _shownMovies.value = topRatedMovies
+                    sortWithOptionIfNeeded()
+                    if (!isLoadMore) {
+                        _events.send(Event.AnimateTop)
+                    }
                 }
                 .onFailure { error ->
                     error.message?.let {
-                        _events.emit(Event.ShowError(it))
+                        _events.send(Event.ShowError(it))
                     }
                 }
         }
@@ -123,35 +140,39 @@ class HomeViewModel(
 
     fun onTabSelected(selectedTab: TabSection) {
         _selectedTab.value = selectedTab
-        when (selectedTab) {
-            TabSection.NowPlaying -> {
-                if (airingTodayTvShows.isEmpty()) {
-                    getAiringTodayTvShows(false)
-                } else {
-                    _shownMovies.value = airingTodayTvShows
-                }
-            }
-
-            TabSection.Popular -> {
-                if (trendingMovies.isEmpty()) {
-                    _loadingState.update {
-                        it.copy(isLoading = true)
+        viewModelScope.launch {
+            when (selectedTab) {
+                TabSection.NowPlaying -> {
+                    if (airingTodayTvShows.isEmpty()) {
+                        getAiringTodayTvShows(false)
+                    } else {
+                        _shownMovies.value = airingTodayTvShows
+                        _events.send(Event.AnimateTop)
                     }
-                    getTrendingMovies(false)
-                } else {
-                    _shownMovies.value = trendingMovies
                 }
-            }
 
-            TabSection.TopRated -> {
-                if (topRatedMovies.isEmpty()) {
-                    _loadingState.update {
-                        it.copy(isLoading = true)
+                TabSection.Popular -> {
+                    if (trendingMovies.isEmpty()) {
+                        _loadingState.update {
+                            it.copy(isLoading = true)
+                        }
+                        getTrendingMovies(false)
+                    } else {
+                        _shownMovies.value = trendingMovies
+                        _events.send(Event.AnimateTop)
                     }
+                }
 
-                    getTopRatedMovies(false)
-                } else {
-                    _shownMovies.value = topRatedMovies
+                TabSection.TopRated -> {
+                    if (topRatedMovies.isEmpty()) {
+                        _loadingState.update {
+                            it.copy(isLoading = true)
+                        }
+                        getTopRatedMovies(false)
+                    } else {
+                        _shownMovies.value = topRatedMovies
+                        _events.send(Event.AnimateTop)
+                    }
                 }
             }
         }
@@ -182,34 +203,55 @@ class HomeViewModel(
         }
     }
 
-    fun onFilterByRatingAscending() {
+    fun onSortByRatingAscending() {
+        sortOption = SortOption.RatingAscending
         _shownMovies.update {
             it.sortedBy { it.voteAverage }.toMutableList()
         }
     }
 
-    fun onFilterByRatingDescending() {
+    fun onSortByRatingDescending() {
+        sortOption = SortOption.RatingDescending
         _shownMovies.update {
             it.sortedByDescending { it.voteAverage }.toMutableList()
         }
     }
 
-    fun onFilterByDateAscending() {
+    fun onSortByDateAscending() {
+        sortOption = SortOption.DateAscending
         _shownMovies.update {
             it.sortedBy { it.releaseDate }.toMutableList()
         }
     }
 
-    fun onFilterByDateDescending() {
+    fun onSortByDateDescending() {
+        sortOption = SortOption.DateDescending
         _shownMovies.update {
             it.sortedByDescending { it.releaseDate }.toMutableList()
         }
     }
 
-
     sealed class Event {
         data class ShowError(val errorMessage: String) : Event()
+        data object AnimateTop : Event()
     }
 
     data class LoadingState(val isLoading: Boolean, val isLoadingMore: Boolean)
+
+    sealed class SortOption {
+        data object RatingAscending : SortOption()
+        data object RatingDescending : SortOption()
+        data object DateAscending : SortOption()
+        data object DateDescending : SortOption()
+    }
+
+    private fun sortWithOptionIfNeeded() {
+        when (sortOption) {
+            SortOption.DateAscending -> onSortByDateAscending()
+            SortOption.DateDescending -> onSortByDateDescending()
+            SortOption.RatingAscending -> onSortByRatingAscending()
+            SortOption.RatingDescending -> onSortByRatingDescending()
+            else -> {}
+        }
+    }
 }
