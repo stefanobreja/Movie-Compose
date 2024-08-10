@@ -40,7 +40,7 @@ fun MoviesGrid(
         state = listState
     ) {
         items(movies) { movie ->
-            MoviePortraitItem(movieUrl = movie.posterPath, movieName = movie.title) {
+            MoviePortraitItem(movie = movie) {
                 movie.id?.let { onMovieClicked(it) }
             }
         }

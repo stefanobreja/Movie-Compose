@@ -24,8 +24,7 @@ fun MoviePortraitList(
         items(movies.size) { index ->
             val movie = movies[index]
             MoviePortraitItem(
-                movie.posterPath,
-                movie.title,
+                movie,
                 onItemClicked = { navController?.navigate("movieDetails/${movie.id}") })
         }
     }

@@ -12,8 +12,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -31,13 +34,24 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.obi.moviecompose.data.Consts
+import com.obi.moviecompose.presentation.AppBarState
 import org.koin.androidx.compose.koinViewModel
 import kotlin.math.roundToInt
 
 @Composable
-fun MovieDetailsScreen(viewModel: MovieDetailsViewModel = koinViewModel(), movieId: Int) {
+fun MovieDetailsScreen(
+    viewModel: MovieDetailsViewModel = koinViewModel(),
+    movieId: Int,
+    setAppBarState: (AppBarState) -> Unit
+) {
     val movie = viewModel.movie.collectAsState()
     val isLoading = viewModel.isLoading.collectAsState()
+
+    LaunchedEffect(key1 = true) {
+        setAppBarState(
+            AppBarState(title = movie.value.title, actions = null)
+        )
+    }
 
     LaunchedEffect(movieId) {
         if (movieId > 0)

@@ -19,21 +19,33 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.obi.moviecompose.presentation.AppBarState
 import com.obi.moviecompose.presentation.Screen
 import com.obi.moviecompose.presentation.components.MoviesGrid
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun SearchScreen(viewModel: SearchViewModel = koinViewModel(), navController: NavHostController) {
+fun SearchScreen(
+    viewModel: SearchViewModel = koinViewModel(),
+    navController: NavHostController,
+    setAppBarState: (AppBarState) -> Unit
+) {
     val searchText by viewModel.searchText.collectAsState()
     val movies by viewModel.movies.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+
+    LaunchedEffect(key1 = true) {
+        setAppBarState(
+            AppBarState(title = "Search", actions = null)
+        )
+    }
 
     Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier.fillMaxSize()) {
         Column(

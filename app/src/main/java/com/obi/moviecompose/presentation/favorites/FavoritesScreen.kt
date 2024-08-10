@@ -1,5 +1,6 @@
-package com.obi.moviecompose.presentation.details
+package com.obi.moviecompose.presentation.favorites
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,24 +17,42 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.obi.moviecompose.R
+import com.obi.moviecompose.presentation.AppBarState
 import com.obi.moviecompose.presentation.Screen
 import com.obi.moviecompose.presentation.components.MoviesGrid
 import com.obi.moviecompose.presentation.favorites.FavoritesViewModel
 import org.koin.androidx.compose.koinViewModel
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun FavoritesScreen(viewModel: FavoritesViewModel = koinViewModel(), navController: NavController) {
+fun FavoritesScreen(
+    viewModel: FavoritesViewModel = koinViewModel(),
+    navController: NavController,
+    setAppBarState: (AppBarState) -> Unit
+) {
     val movies by viewModel.displayedMovies.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val searchText by viewModel.searchText.collectAsState()
     val state = rememberPullRefreshState(isLoading, { viewModel.getFavoriteMovies() })
+
+    LaunchedEffect(key1 = true) {
+        setAppBarState(
+            AppBarState(title = "Favorites", actions = null)
+        )
+    }
+
     Surface(
         color = MaterialTheme.colorScheme.background, modifier = Modifier
             .fillMaxSize()
@@ -44,30 +63,48 @@ fun FavoritesScreen(viewModel: FavoritesViewModel = koinViewModel(), navControll
                 .verticalScroll(rememberScrollState())
                 .pullRefresh(state)
         ) {
-            OutlinedTextField(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 12.dp, horizontal = 12.dp),
-                value = searchText,
-                onValueChange = { viewModel.onSearchTextChanged(it) },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = null
-                    )
-                },
-            )
-            MoviesGrid(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                movies = movies,
-                loadMore = { },
-                isLoading = false, {
-                    navController.navigate("${Screen.Details.route}?movieId=$it")
-                    navController.navigate("${Screen.Details.route}?movieId=$it")
-                }
-            )
+            if (movies.isNotEmpty()) {
+                OutlinedTextField(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 12.dp, horizontal = 12.dp),
+                    value = searchText,
+                    onValueChange = { viewModel.onSearchTextChanged(it) },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = null
+                        )
+                    },
+                )
+                MoviesGrid(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    movies = movies,
+                    loadMore = { },
+                    isLoading = false, {
+                        navController.navigate("${Screen.Details.route}?movieId=$it")
+                        navController.navigate("${Screen.Details.route}?movieId=$it")
+                    }
+                )
+            } else {
+                Text(
+                    text = "You need to add some movies to favorites to see them here",
+                    fontSize = 16.sp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 24.dp, horizontal = 24.dp)
+                )
+                Image(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp),
+                    painter = painterResource(id = R.drawable.movie_ill),
+                    contentDescription = null,
+                    contentScale = ContentScale.FillWidth
+                )
+            }
         }
     }
 }

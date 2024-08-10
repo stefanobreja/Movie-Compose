@@ -38,11 +38,11 @@ class HomeViewModel(
         MutableStateFlow(LoadingState(isLoading = true, isLoadingMore = false))
     val loadingState: StateFlow<LoadingState> = _loadingState
 
-    private val _selectedTab: MutableStateFlow<TabSection> = MutableStateFlow(TabSection.NowPlaying)
+    private val _selectedTab: MutableStateFlow<TabSection> = MutableStateFlow(TabSection.Popular)
     var selectedTab: StateFlow<TabSection> = _selectedTab
 
     init {
-        getAiringTodayTvShows(false)
+        getTrendingMovies(false)
     }
 
     private fun getAiringTodayTvShows(isLoadMore: Boolean) {
@@ -179,6 +179,30 @@ class HomeViewModel(
                 }
                 getTopRatedMovies(true)
             }
+        }
+    }
+
+    fun onFilterByRatingAscending() {
+        _shownMovies.update {
+            it.sortedBy { it.voteAverage }.toMutableList()
+        }
+    }
+
+    fun onFilterByRatingDescending() {
+        _shownMovies.update {
+            it.sortedByDescending { it.voteAverage }.toMutableList()
+        }
+    }
+
+    fun onFilterByDateAscending() {
+        _shownMovies.update {
+            it.sortedBy { it.releaseDate }.toMutableList()
+        }
+    }
+
+    fun onFilterByDateDescending() {
+        _shownMovies.update {
+            it.sortedByDescending { it.releaseDate }.toMutableList()
         }
     }
 
