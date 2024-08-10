@@ -2,9 +2,11 @@ package com.obi.moviecompose.presentation.favorites
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
@@ -12,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -22,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -63,47 +67,58 @@ fun FavoritesScreen(
                 .verticalScroll(rememberScrollState())
                 .pullRefresh(state)
         ) {
-            if (movies.isNotEmpty()) {
-                OutlinedTextField(
+            if (isLoading) {
+                CircularProgressIndicator(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 12.dp, horizontal = 12.dp),
-                    value = searchText,
-                    onValueChange = { viewModel.onSearchTextChanged(it) },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = null
-                        )
-                    },
-                )
-                MoviesGrid(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    movies = movies,
-                    loadMore = { },
-                    isLoading = false, {
-                        navController.navigate("${Screen.Details.route}?movieId=$it")
-                        navController.navigate("${Screen.Details.route}?movieId=$it")
-                    }
+                        .padding(12.dp)
+                        .size(48.dp)
+                        .fillMaxHeight()
+                        .align(Alignment.CenterHorizontally)
                 )
             } else {
-                Text(
-                    text = "You need to add some movies to favorites to see them here",
-                    fontSize = 16.sp,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 24.dp, horizontal = 24.dp)
-                )
-                Image(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp),
-                    painter = painterResource(id = R.drawable.movie_ill),
-                    contentDescription = null,
-                    contentScale = ContentScale.FillWidth
-                )
+
+                if (movies.isNotEmpty()) {
+                    OutlinedTextField(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 12.dp, horizontal = 12.dp),
+                        value = searchText,
+                        onValueChange = { viewModel.onSearchTextChanged(it) },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = null
+                            )
+                        },
+                    )
+                    MoviesGrid(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        movies = movies,
+                        loadMore = { },
+                        isLoading = false, {
+                            navController.navigate("${Screen.Details.route}?movieId=$it")
+                            navController.navigate("${Screen.Details.route}?movieId=$it")
+                        }
+                    )
+                } else {
+                    Text(
+                        text = "You need to add some movies to favorites to see them here",
+                        fontSize = 16.sp,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 24.dp, horizontal = 24.dp)
+                    )
+                    Image(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp),
+                        painter = painterResource(id = R.drawable.movie_ill),
+                        contentDescription = null,
+                        contentScale = ContentScale.FillWidth
+                    )
+                }
             }
         }
     }

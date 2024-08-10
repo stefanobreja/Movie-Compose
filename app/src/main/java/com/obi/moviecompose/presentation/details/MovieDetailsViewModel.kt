@@ -7,6 +7,7 @@ import com.obi.moviecompose.domain.toDataMovie
 import com.obi.moviecompose.domain.usecases.GetMovieDetailsUseCase
 import com.obi.moviecompose.domain.usecases.RemoveFavoriteMovieUseCase
 import com.obi.moviecompose.domain.usecases.SaveFavoriteMovieUseCase
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -32,6 +33,7 @@ class MovieDetailsViewModel(
         viewModelScope.launch {
             getMovieDetailsUseCase(GetMovieDetailsUseCase.Params(movieId))
                 .onSuccess { response ->
+                    delay(1000)
                     _isLoading.value = false
                     response.movie?.let {
                         _movie.value = it

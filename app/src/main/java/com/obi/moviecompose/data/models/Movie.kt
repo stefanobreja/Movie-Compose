@@ -12,7 +12,7 @@ data class Movie(
     var adult: Boolean? = false,
     var backdrop_path: String? = "",
     var budget: Int? = 0,
-    @Ignore var genres: List<Genre>? = emptyList(),
+    var genres: List<Genre>? = emptyList(),
     var homepage: String? = "",
     var original_language: String? = "",
     var overview: String? = "",

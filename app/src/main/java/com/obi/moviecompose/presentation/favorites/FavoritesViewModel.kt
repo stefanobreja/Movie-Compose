@@ -1,6 +1,7 @@
 package com.obi.moviecompose.presentation.favorites
 
 import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -24,6 +25,12 @@ class FavoritesViewModel(private val getFavoriteMoviesUseCase: GetFavoriteMovies
     val isLoading: MutableStateFlow<Boolean> = _isLoading
 
     init {
+        getFavoriteMovies()
+    }
+
+    override fun onStart(owner: LifecycleOwner) {
+        super.onStart(owner)
+        _isLoading.value = true
         getFavoriteMovies()
     }
 

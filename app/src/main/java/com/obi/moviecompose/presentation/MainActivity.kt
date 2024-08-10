@@ -27,6 +27,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -46,11 +47,13 @@ import com.obi.moviecompose.ui.theme.MovieComposeAppTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        installSplashScreen()
 
         setContent {
             MovieComposeAppTheme {
                 val navController = rememberNavController()
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val navIconState = remember { mutableStateOf(false) }
                 val topAppBarState = remember { mutableStateOf(AppBarState()) }
                 val bottomBarState = rememberSaveable { mutableStateOf(true) }
 
@@ -77,11 +80,13 @@ class MainActivity : ComponentActivity() {
                                 )
                             },
                             navigationIcon = {
-                                IconButton(onClick = { navController.popBackStack() }) {
-                                    Icon(
-                                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                        contentDescription = "Back button"
-                                    )
+                                if (navIconState.value) {
+                                    IconButton(onClick = { navController.popBackStack() }) {
+                                        Icon(
+                                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                            contentDescription = "Back button"
+                                        )
+                                    }
                                 }
                             },
 
@@ -99,6 +104,7 @@ class MainActivity : ComponentActivity() {
                         Modifier.padding(innerPadding)
                     ) {
                         composable(Screen.Favorites.route) {
+                            navIconState.value = false
                             bottomBarState.value = true
                             FavoritesScreen(
                                 navController = navController,
@@ -107,12 +113,14 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable(Screen.Home.route) {
+                            navIconState.value = false
                             bottomBarState.value = true
                             HomeScreen(
                                 navController = navController,
                                 setAppBarState = { topAppBarState.value = it })
                         }
                         composable(Screen.Search.route) {
+                            navIconState.value = false
                             bottomBarState.value = true
                             SearchScreen(
                                 navController = navController,
@@ -126,6 +134,7 @@ class MainActivity : ComponentActivity() {
                                 defaultValue = -1
                             })
                         ) {
+                            navIconState.value = true
                             bottomBarState.value = false
                             val movieId = it.arguments?.getInt("movieId")
                             movieId?.let {

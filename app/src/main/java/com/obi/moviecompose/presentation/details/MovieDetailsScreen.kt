@@ -53,7 +53,7 @@ fun MovieDetailsScreen(
         )
     }
 
-    LaunchedEffect(movieId) {
+    LaunchedEffect(true) {
         if (movieId > 0)
             viewModel.getMovieDetails(movieId)
     }
