@@ -9,13 +9,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.pullrefresh.pullRefresh
-import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -32,14 +28,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.NavOptions
 import com.obi.moviecompose.R
 import com.obi.moviecompose.presentation.AppBarState
 import com.obi.moviecompose.presentation.Screen
 import com.obi.moviecompose.presentation.components.MoviesGrid
-import com.obi.moviecompose.presentation.favorites.FavoritesViewModel
 import org.koin.androidx.compose.koinViewModel
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun FavoritesScreen(
     viewModel: FavoritesViewModel = koinViewModel(),
@@ -49,23 +44,27 @@ fun FavoritesScreen(
     val movies by viewModel.displayedMovies.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val searchText by viewModel.searchText.collectAsState()
-    val state = rememberPullRefreshState(isLoading, { viewModel.getFavoriteMovies() })
+    var shouldRefresh = navController.currentBackStackEntry
+        ?.savedStateHandle
+        ?.get<Boolean>(SHOULD_REFRESH_FAVORITES)
+        ?: false
 
     LaunchedEffect(key1 = true) {
         setAppBarState(
             AppBarState(title = "Favorites", actions = null)
         )
     }
+    LaunchedEffect(key1 = shouldRefresh) {
+        viewModel.getFavoriteMovies(true)
+        shouldRefresh = false
+    }
 
     Surface(
-        color = MaterialTheme.colorScheme.background, modifier = Modifier
-            .fillMaxSize()
-
+        color = MaterialTheme.colorScheme.background,
+        modifier = Modifier.fillMaxSize()
     ) {
         Column(
-            Modifier
-                .verticalScroll(rememberScrollState())
-                .pullRefresh(state)
+            Modifier.verticalScroll(rememberScrollState())
         ) {
             if (isLoading) {
                 CircularProgressIndicator(
@@ -76,7 +75,6 @@ fun FavoritesScreen(
                         .align(Alignment.CenterHorizontally)
                 )
             } else {
-
                 if (movies.isNotEmpty()) {
                     OutlinedTextField(
                         modifier = Modifier
@@ -98,8 +96,10 @@ fun FavoritesScreen(
                         movies = movies,
                         loadMore = { },
                         isLoading = false, {
-                            navController.navigate("${Screen.Details.route}?movieId=$it")
-                            navController.navigate("${Screen.Details.route}?movieId=$it")
+                            navController.navigate(
+                                route = "${Screen.Details.route}?movieId=$it",
+                                navOptions = NavOptions.Builder().setLaunchSingleTop(true).build()
+                            )
                         }
                     )
                 } else {
@@ -123,3 +123,5 @@ fun FavoritesScreen(
         }
     }
 }
+
+const val SHOULD_REFRESH_FAVORITES = "SHOULD_REFRESH_FAVORITES"

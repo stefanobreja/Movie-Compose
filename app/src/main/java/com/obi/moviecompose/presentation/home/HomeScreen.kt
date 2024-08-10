@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import androidx.navigation.NavOptions
 import com.obi.moviecompose.R
 import com.obi.moviecompose.presentation.AppBarState
 import com.obi.moviecompose.presentation.Screen
@@ -137,7 +138,10 @@ fun HomeScreen(
                     loadMore = { viewModel.loadMore() },
                     isLoading = loadingState.isLoadingMore,
                     onMovieClicked = {
-                        navController.navigate("${Screen.Details.route}?movieId=$it")
+                        navController.navigate(
+                            route = "${Screen.Details.route}?movieId=$it",
+                            navOptions = NavOptions.Builder().setLaunchSingleTop(true).build()
+                        )
                     }
                 )
             }

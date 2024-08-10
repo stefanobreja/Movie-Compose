@@ -1,5 +1,6 @@
 package com.obi.moviecompose.presentation.details
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,9 +33,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.obi.moviecompose.data.Consts
 import com.obi.moviecompose.presentation.AppBarState
+import com.obi.moviecompose.presentation.favorites.SHOULD_REFRESH_FAVORITES
 import org.koin.androidx.compose.koinViewModel
 import kotlin.math.roundToInt
 
@@ -42,10 +45,15 @@ import kotlin.math.roundToInt
 fun MovieDetailsScreen(
     viewModel: MovieDetailsViewModel = koinViewModel(),
     movieId: Int,
+    navController: NavController,
     setAppBarState: (AppBarState) -> Unit
 ) {
     val movie = viewModel.movie.collectAsState()
     val isLoading = viewModel.isLoading.collectAsState()
+
+    BackHandler {
+        navController.currentBackStackEntry?.savedStateHandle?.set(SHOULD_REFRESH_FAVORITES, true)
+    }
 
     LaunchedEffect(key1 = true) {
         setAppBarState(

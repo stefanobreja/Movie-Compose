@@ -137,9 +137,10 @@ class MainActivity : ComponentActivity() {
                             navIconState.value = true
                             bottomBarState.value = false
                             val movieId = it.arguments?.getInt("movieId")
-                            movieId?.let {
+                            movieId?.let { id ->
                                 MovieDetailsScreen(
-                                    movieId = it,
+                                    movieId = id,
+                                    navController = navController,
                                     setAppBarState = { topAppBarState.value = it })
                             }
                         }

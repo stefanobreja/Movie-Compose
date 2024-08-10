@@ -1,22 +1,22 @@
 package com.obi.moviecompose.presentation.favorites
 
-import androidx.lifecycle.DefaultLifecycleObserver
-import androidx.lifecycle.LifecycleObserver
-import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.obi.moviecompose.domain.DomainMovie
 import com.obi.moviecompose.domain.usecases.GetFavoriteMoviesUseCase
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import logcat.logcat
 
-class FavoritesViewModel(private val getFavoriteMoviesUseCase: GetFavoriteMoviesUseCase) :
-    ViewModel(), DefaultLifecycleObserver {
+class FavoritesViewModel(
+    private val getFavoriteMoviesUseCase: GetFavoriteMoviesUseCase
+) :
+    ViewModel() {
     private var movies: List<DomainMovie> = emptyList()
-    private val _displayedMovies: MutableStateFlow<List<DomainMovie>> =
-        MutableStateFlow(listOf())
-    val displayedMovies: MutableStateFlow<List<DomainMovie>> = _displayedMovies
+    private val _displayedMovies: MutableStateFlow<MutableList<DomainMovie>> =
+        MutableStateFlow(mutableListOf())
+    val displayedMovies: MutableStateFlow<MutableList<DomainMovie>> = _displayedMovies
 
     private val _searchText: MutableStateFlow<String> = MutableStateFlow("")
     val searchText: MutableStateFlow<String> = _searchText
@@ -25,22 +25,21 @@ class FavoritesViewModel(private val getFavoriteMoviesUseCase: GetFavoriteMovies
     val isLoading: MutableStateFlow<Boolean> = _isLoading
 
     init {
-        getFavoriteMovies()
+        getFavoriteMovies(false)
     }
 
-    override fun onStart(owner: LifecycleOwner) {
-        super.onStart(owner)
-        _isLoading.value = true
-        getFavoriteMovies()
-    }
-
-    fun getFavoriteMovies() {
+    fun getFavoriteMovies(isRefresh: Boolean) {
+        if (isRefresh) {
+            _isLoading.value = true
+        }
+        _displayedMovies.value.clear()
         viewModelScope.launch {
             getFavoriteMoviesUseCase()
                 .onSuccess { result ->
+                    delay(500)
                     _isLoading.value = false
                     movies = result.movies.orEmpty()
-                    _displayedMovies.value = movies
+                    _displayedMovies.value = movies.toMutableList()
                 }
                 .onFailure { e ->
                     _isLoading.value = false
@@ -52,9 +51,10 @@ class FavoritesViewModel(private val getFavoriteMoviesUseCase: GetFavoriteMovies
     fun onSearchTextChanged(text: String) {
         _searchText.value = text
         if (text.isBlank()) {
-            _displayedMovies.value = movies
+            _displayedMovies.value = movies.toMutableList()
         } else {
-            _displayedMovies.value = movies.filter { it.title.contains(text, ignoreCase = true) }
+            _displayedMovies.value =
+                movies.filter { it.title.contains(text, ignoreCase = true) }.toMutableList()
         }
     }
 

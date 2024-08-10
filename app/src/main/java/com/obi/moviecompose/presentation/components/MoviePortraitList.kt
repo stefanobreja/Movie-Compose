@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import androidx.navigation.NavOptions
 import com.obi.moviecompose.domain.Movie
 
 @Composable
@@ -25,7 +26,12 @@ fun MoviePortraitList(
             val movie = movies[index]
             MoviePortraitItem(
                 movie,
-                onItemClicked = { navController?.navigate("movieDetails/${movie.id}") })
+                onItemClicked = {
+                    navController?.navigate(
+                        route = "movieDetails/${movie.id}",
+                        navOptions = NavOptions.Builder().setLaunchSingleTop(true).build()
+                    )
+                })
         }
     }
 
